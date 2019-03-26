@@ -1,49 +1,49 @@
 # codePost Princeton Tools
 
-The tools in this repository were written to provide convenient access to the codePost platform from Princeton University's Department of Computer Science. They make a set of assumptions to simplify to workflow of upload assignments to codePost from submissions made by students to [Tigerfile](https://csguide.cs.princeton.edu/academic/tigerfile), the submission provided by the department's IT staff (including @jcrouth).
+The tools in this repository were written to provide convenient access to the [codePost](https://codepost.io) platform from Princeton University's Department of Computer Science. They make a set of assumptions to simplify to workflow of uploading assignments to codePost from submissions made by students to [Tigerfile](https://csguide.cs.princeton.edu/academic/tigerfile), the submission platform provided by the department's IT staff (including [@jcrouth](https://github.com/jcrouth)).
 
 ## Quick Setup
 
 1. Install the codePost Princeton Tools to your path using pip:
 
-```
-pip install --upgrade codePost-princeton-tools
-```
+   ```
+   pip install --upgrade codePost-princeton-tools
+   ```
 
-If you do not have sufficient privileges to install the tools globally, you can install them in your home directory:
+   If you do not have sufficient privileges to install the tools globally, you can install them in your home directory:
 
-```
-pip install --user --upgrade codePost-princeton-tools
-```
+   ```
+   pip install --user --upgrade codePost-princeton-tools
+   ```
 
 2. Retrieve your codePost API key from codePost's settings at [https://codepost.io/settings](https://codepost.io/settings). Note that as of March 2019, you can only retrieve a codePost API key if you are an administrator for a course on codePost.
 
 3. Create a configuration file in your home directory, either called `codepost-config.yaml` or `.codepost-config.yaml`, and complete the following template for the information relevant to your course. You should at most have to add the codePost API key, and set the proper course name and period.
 
-```
-api_key: "<API KEY HERE>" # <-- obtain your codePost API key from https://codepost.io/settings
+   ```yaml
+   api_key: "<API KEY HERE>" # <-- obtain your codePost API key from https://codepost.io/settings
 
-# Course specific settings
-course_name: COS126
-course_period: S2019
+   # Course specific settings
+   course_name: COS126
+   course_period: S2019
 
-# Tigerfile specific settings (do not change)
-tigerfile_path: /n/fs/tigerfile/Files/{course_name}_{course_period}/{assignment_name}
-user_pattern: "{}@princeton.edu"
-partners_path: "{pwd}/partners.txt"
-group_separator: "-"
+   # Tigerfile specific settings (do not change)
+   tigerfile_path: /n/fs/tigerfile/Files/{course_name}_{course_period}/{assignment_name}
+   user_pattern: "{}@princeton.edu"
+   partners_path: "{pwd}/partners.txt"
+   group_separator: "-"
 
-# Run-script specific settings (for COS 126, 226, etc., comment out if not using)
-tests_path: "{pwd}/../.output/{submission}.output.txt"
-```
+   # Run-script specific settings (for COS 126, 226, etc., comment out if not using)
+   tests_path: "{pwd}/../.output/{submission}.output.txt"
+   ```
 
 ## Command Line Syntax
 
 ```
-$ push-to-codePost2 --help
-usage: push-to-codePost2 [-h] [-a A] [-s S [S ...]] [--netid] [--groupname]
-                         [--extend] [--overwrite] [--verbose]
-                         [--without-tests] [--use-cache] [--skip-notdone]
+$ push-to-codePost --help
+usage: push-to-codePost [-h] [-a A] [-s S [S ...]] [--netid] [--groupname]
+                        [--extend] [--overwrite] [--verbose]
+                        [--without-tests] [--use-cache] [--skip-notdone]
 
 optional arguments:
   -h, --help       show this help message and exit
@@ -64,6 +64,45 @@ optional arguments:
 
 ## Usage Examples
 
+In both the following examples, we asssume there is a configuration file `~/.codepost-config.yaml` which is properly configured for the course `"COS126"` and period `"S2019"`. We assume that the autograding scripts can be invoked by calling `~/assignments/guitar/run-script *`.
+
 ### Upload a single submission
 
+When uploading a single submission, it is more convenient to copy from the `by_netid` folder and to use the `--netid` upload mode.
+
+```shell
+$ cd $(mktemp -d)
+$ cp -pr /n/fs/tigerfile/Files/COS126_S2019/Guitar/by_netid/jstudent ./
+$ ~/assignment/guitar/run-script *
+$ push-to-codePost --netid -a 'Guitar' -s jstudent
+```
+
 ### Upload many submissions
+
+When uploading a batch of submissions, it is better to copy submissions from the `submissions` folder.
+
+```shell
+$ cd $(mktemp -d)
+$ cp -pr /n/fs/tigerfile/Files/COS126_S2019/Guitar/submissions/* ./
+$ ~/assignment/guitar/run-script *
+$ push-to-codePost -a 'Guitar' -s *
+```
+
+## Remarks
+
+- The root tree of TigerFile submissions is located on the CS department's NFS at: `/n/fs/tigerfile/Files/`.
+
+- When creating a course, use the same naming conventions used throughout Princeton, both for the course name `"COSxxx"` and the course period `"S2019"`, for Spring 2019, (in both cases with no spaces). This is important to properly resolve the path associated with your course in TigerFile's tree.
+
+- If you have an assignment that contains a space in its name, such as `"My Assignment"`, the associated TigerFile will substitute the space `" "` by an underscore `"_"`; you must be sure to use quotes when specifying the assignment name in the command line call.
+
+- The directory tree for the submissions to `"My Assignment"` in course `"COS101"` taught during `"S2019"` would be `/n/fs/tigerfile/Files/COS101_S2019/My_Assignment/`. There are two subdirectories: `submissions` contains a folder per submission; `by_netid` contains a folder per student (and so some submissions are duplicated as they appear for each student).
+
+- The autograders used in Princeton CS' intro courses typically outputs the result of processing a submission in the hidden folder `.output`, such that the result of submission `XXXXXX` would be available as `.output/XXXXXX.output.txt`. This can be changed in this part of the configuration file (or commented out if not using these autograders):
+
+  ```yaml
+  # Run-script specific settings (for COS 126, 226, etc., comment out if not using)
+  tests_path: "{pwd}/../.output/{submission}.output.txt"
+  ```
+
+- If you are not using TigerFile, or running this tool outside of the Princeton CS infrastructure, you will lose partnerships detection. One way to circumvent this, is to use the `--groupname` mode, and to include all the names of a partnerships in the directory name, separated by dashes, such as `partner1-partner2`.
