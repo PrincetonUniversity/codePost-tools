@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+
+# Python 2
+from __future__ import print_function
+
 import os
 import json
 import sys
@@ -9,7 +13,12 @@ import time
 from argparse import ArgumentParser, FileType
 
 # FIXME: Use the library instead of a call to `upload-to-codePost`?
-import codePost_api as cP
+try:
+    import codePost_api as cP
+except ImportError:
+    print("ERROR: Cannot import 'codePost_api' package. Maybe the package is not installed?")
+    print("  Try:   pip install --user codePost-api")
+    sys.exit(95)
 
 from yaml import load, dump
 try:
@@ -17,8 +26,7 @@ try:
 except ImportError:
     from yaml import Loader, Dumper
 
-# FIXME: Package "groupLister2"
-GROUPLISTER_CMD = "groupLister2"
+GROUPLISTER_CMD = "ls-tigerfile-groups"
 
 
 class _Color:
@@ -202,20 +210,9 @@ def uploadFolderBySubmissionId(path, without_tests=False):
     if params["overwrite"]:
         cmd.append("--overwrite")
 
-    out = None
     try:
         _print_info("Calling: '{}'".format(" ".join(cmd)))
-        # p = subprocess.Popen(
-        #     " ".join(cmd),
-        #     executable='/bin/bash',
-        #     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-        #     close_fds=True)
 
-        # (out, err) = p.communicate()
-        # if err != None and len(err) > 0:
-        #     _print_warn(
-        #         "Submission: Upload, calling process returned some error: '{}'".format(err.decode("ascii")))
-        # _print_info("Produced: {}".format(out.decode("ascii")))
         (errcode, output) = subprocess.getstatusoutput(" ".join(cmd))
         if errcode != 0:
             _print_warn("Submission: Upload calling return {} as errcode, output: '{}'".format(
@@ -325,20 +322,9 @@ def uploadFolderByNetID(path, without_tests=False):
     if params["overwrite"]:
         cmd.append("--overwrite")
 
-    out = None
     try:
         _print_info("Calling: '{}'".format(" ".join(cmd)))
-        # p = subprocess.Popen(
-        #     " ".join(cmd),
-        #     executable='/bin/bash',
-        #     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-        #     close_fds=True)
 
-        # (out, err) = p.communicate()
-        # if err != None and len(err) > 0:
-        #     _print_warn(
-        #         "Submission: Upload, calling process returned some error: '{}'".format(err.decode("ascii")))
-        # _print_info("Produced: {}".format(out.decode("ascii")))
         (errcode, output) = subprocess.getstatusoutput(" ".join(cmd))
         if errcode != 0:
             _print_warn("Submission: Upload calling return {} as errcode, output: '{}'".format(

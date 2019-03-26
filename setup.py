@@ -20,7 +20,10 @@ setup(
         "Programming Language :: Python :: 3.7",
     ],
     packages=[],
-    scripts=["bin/push-to-codePost2"],
+    scripts=[
+        "bin/push-to-codePost",
+        "bin/ls-tigerfile-groups",
+    ],
     install_requires=[
         "codePost-api",
         "codePost-tools",

@@ -1,0 +1,50 @@
+#!/bin/bash
+
+##########################################################################
+# TigerFile Group Listing Program
+#
+# DATE:    2019-02-07, updated 2019-03-26
+# AUTHOR:  lumbroso (lumbroso@cs.princeton.edu)
+#
+# DESCRIPTION:
+# Given an actual Tigerfile file tree (or a hard link to such a tree), will
+# list the students in each group which made a submission. This can be used
+# by the upload CLI tool to determine when to upload a submission associated
+# with multiple students.
+#
+#    $ ls-tigerfile-groups ~/tigerfile/Guitar
+#
+# Currently, this is done by looking at the inodes (using `ls -i`) at
+# which each file is stored to identify multiple identical copies of the
+# same file, and match students which are linked to the same set of files.
+#
+# NOTE:
+# This script should be deprecated as soon as Tigerfile provides an API
+# endpoint to retrieve the group memberships directly.
+#
+##########################################################################
+
+ASSIGNMENT_DIR=$1
+BASE_DIR=$(pwd)
+
+# For each submission output students
+for i  in $1/submissions/*
+do
+    GROUPID=$(basename $i)
+
+    cd "$i"
+
+    if [ $(ls | wc -l) -eq 0 ]
+    then
+        # ignore empty submission
+        echo -n ""
+    else
+        PARTNERS=$(ls -i | sed -e 's/^\s*//' | cut -d' ' -f1 | { read inum; find ../../by_netid -inum "$inum"; } | cut -d/ -f4 | sort | tr '\n' '-' | sed -e 's/-$//')
+        if [ ! -z "$PARTNERS" ]
+        then
+            echo "$GROUPID,$PARTNERS"
+        fi
+    fi
+    cd "$BASE_DIR"
+done
+
