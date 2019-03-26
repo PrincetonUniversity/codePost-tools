@@ -12,6 +12,13 @@ import time
 # NOTE: Use click instead of argparse?
 from argparse import ArgumentParser, FileType
 
+try:
+    # Python 3
+    from subprocess import getstatusoutput
+except ImportError:
+    # Python 2
+    from commands import getstatusoutput
+
 # FIXME: Use the library instead of a call to `upload-to-codePost`?
 try:
     import codePost_api as cP
@@ -213,7 +220,7 @@ def uploadFolderBySubmissionId(path, without_tests=False):
     try:
         _print_info("Calling: '{}'".format(" ".join(cmd)))
 
-        (errcode, output) = subprocess.getstatusoutput(" ".join(cmd))
+        (errcode, output) = getstatusoutput(" ".join(cmd))
         if errcode != 0:
             _print_warn("Submission: Upload calling return {} as errcode, output: '{}'".format(
                 errcode, output))
@@ -325,7 +332,7 @@ def uploadFolderByNetID(path, without_tests=False):
     try:
         _print_info("Calling: '{}'".format(" ".join(cmd)))
 
-        (errcode, output) = subprocess.getstatusoutput(" ".join(cmd))
+        (errcode, output) = getstatusoutput(" ".join(cmd))
         if errcode != 0:
             _print_warn("Submission: Upload calling return {} as errcode, output: '{}'".format(
                 errcode, output))
