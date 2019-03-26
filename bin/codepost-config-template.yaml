@@ -1,0 +1,14 @@
+api_key: # <-- obtain your codePost API key from https://codepost.io/settings
+
+# Course specific settings
+course_name: COS999
+course_period: S2019
+
+# Tigerfile specific settings
+tigerfile_path: /n/fs/tigerfile/Files/{course_name}_{course_period}/{assignment_name}
+user_pattern: "{}@princeton.edu"
+partners_path: "{pwd}/partners.txt"
+group_separator: "-"
+
+# Run-script specific settings (for COS 126, 226, etc.)
+tests_path: "{pwd}/../.output/{submission}.output.txt"

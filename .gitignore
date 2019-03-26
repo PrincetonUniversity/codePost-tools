@@ -1,0 +1,20 @@
+# Build data
+/.eggs
+/build
+/dist
+/MANIFEST
+*.egg-info
+.python-version
+*.pyc
+*.egg
+*.class
+
+# Python binaries
+*.pyc
+__pycache__
+
+# macOS metadata
+.DS_Store
+
+# VS Code metadata
+.vscode
