@@ -1,6 +1,6 @@
 # codePost Princeton Tools
 
-The tools in this repository were written to provide convenient access to the [codePost](https://codepost.io) platform from Princeton University's Department of Computer Science. They make a set of assumptions to simplify to workflow of uploading assignments to codePost from submissions made by students to [Tigerfile](https://csguide.cs.princeton.edu/academic/tigerfile), the submission platform provided by the department's IT staff (including [@jcrouth](https://github.com/jcrouth)).
+The tools in this repository were written to provide convenient access to the [codePost](https://codepost.io) platform from Princeton University's Department of Computer Science. They make a set of assumptions to simplify to workflow of uploading assignments to codePost from submissions made by students to [TigerFile](https://csguide.cs.princeton.edu/academic/tigerfile), the submission platform provided by the department's IT staff (including [@jcrouth](https://github.com/jcrouth)).
 
 ## Quick Setup
 
@@ -27,17 +27,25 @@ The tools in this repository were written to provide convenient access to the [c
    course_name: COS126
    course_period: S2019
 
-   # Tigerfile specific settings (do not change)
+   # TigerFile specific settings (do not change)
    tigerfile_path: /n/fs/tigerfile/Files/{course_name}_{course_period}/{assignment_name}
    user_pattern: "{}@princeton.edu"
    partners_path: "{pwd}/partners.txt"
    group_separator: "-"
 
-   # Run-script specific settings (for COS 126, 226, etc., comment out if not using)
+   # Run-script specific settings (for COS 126, 226, ..., comment out if not using)
    tests_path: "{pwd}/../.output/{submission}.output.txt"
+
+   # LMS column IDs (optional, for convenient grade export, comment out if not using)
+   lms_format: "{name} | {id}"
+   lms_ids:
+     Hello: 38213
+     Loops: 38235
    ```
 
 ## Command Line Syntax
+
+### Upload tool
 
 ```
 $ push-to-codePost --help
@@ -60,6 +68,30 @@ optional arguments:
   --without-tests  Allow upload assignments that do not have compiled tests.
   --use-cache      Allow for caching mechanism (i.e., for groups).
   --skip-notdone   Skip submissions that are not done.
+```
+
+### Grade export tool
+
+```
+$ export-codePost-grades --help
+usage: export-codePost-grades [-h] [-a [A [A ...]]] [-n [N [N ...]]]
+                              [--blackboard] [--pretty] [--json]
+                              [--include-inactive] [--include-empty]
+                              [--verbose]
+
+optional arguments:
+  -h, --help          show this help message and exit
+  -a [A [A ...]]      Name(s) of the assignment(s) for which to export grades
+                      (by default, all available).
+  -n [N [N ...]]      Usernames of students to export (by default, everybody).
+  --blackboard        Insert Blackboard column IDs when available (in
+                      configuration file, the "lms_ids" option).
+  --pretty            Pretty print output.
+  --json              Export as JSON (by default, the export is CSV).
+  --include-inactive  Include the grades of students who are inactive.
+  --include-empty     Include columns for assignments even when the column is
+                      blank.
+  --verbose           Display informational messages.
 ```
 
 ## Usage Examples
@@ -88,7 +120,46 @@ $ ~/assignment/guitar/run-script *
 $ push-to-codePost -a 'Guitar' -s *
 ```
 
+### Export grades to CSV to import in Blackboard
+
+It is possible to export all grades associated with the current course (as defined by the configuration file) using the `export-codePost-grades` tool. If the configuration has been properly configured, such that the `lms_ids` section contains the column identifiers of the Blackboard Gradecenter, then it is possible to produce a CSV that can be directly imported by Blackboard using the `--blackboard` flag:
+
+```shell
+$ export-codePost-grades -a Hello Loops --blackboard > course_grades.csv
+$ head -3 course_grades.csv
+"Username","Hello | 38213","Loops | 38235"
+"student1",20.0,20.0
+"student2",20.0,20.0
+```
+
+For the Blackboard export to work, you need to complete the section `lms_ids` of the configuration file:
+
+```yaml
+lms_ids:
+  Hello: 38213
+  Loops: 38235
+```
+
+where, for each assignment name, you provide the column identifier of the corresponding column in Blackboard. You can obtain a column's identifier in Blackboard's Gradecenter by using the [grade column menus](https://help.blackboard.com/Learn/Instructor/Grade/Grade_Columns#menu-options_OTP-3).
+
+To give you an example of the content of the `course_grades.csv` file, consider the following output:
+
+```shell
+$ export-codePost-grades --pretty | head -3
+"Username","Loops","Sierpinski","Programming Exam 1","NBody","Hello"
+"student1",   20.0,            ,                11.0,   20.0,   20.0
+"student2",   20.0,        20.0,                15.0,   20.0,   20.0
+```
+
 ## Remarks
+
+### About partnerships...
+
+- If you are not using TigerFile, or running this tool outside of the Princeton CS infrastructure, you will lose partnerships detection. One way to circumvent this, is to use the `--groupname` mode, and to include all the student usernames of a partnerships in the directory name, separated by dashes, such as `partner1-partner2`.
+
+- Another mechanism to specify partnerships, which also does not depend on TigerFile, is to include the student usernames, one by line, in a file `partners.txt` included in each submission folder, in addition to the other files. When this file is detected, the upload tool will use this information. (You can change the name of the file containing this information by adjusting the `partners_path` setting in the configuration file.)
+
+### About TigerFile...
 
 - The root tree of TigerFile submissions is located on the CS department's NFS at: `/n/fs/tigerfile/Files/`.
 
@@ -98,6 +169,10 @@ $ push-to-codePost -a 'Guitar' -s *
 
 - The directory tree for the submissions to `"My Assignment"` in course `"COS101"` taught during `"S2019"` would be `/n/fs/tigerfile/Files/COS101_S2019/My_Assignment/`. There are two subdirectories: `submissions` contains a folder per submission; `by_netid` contains a folder per student (and so some submissions are duplicated as they appear for each student).
 
+- You can find more general information about [Tigerfile on the CS guide](https://csguide.cs.princeton.edu/academic/tigerfile).
+
+### About RunScript...
+
 - The autograders used in Princeton CS' intro courses typically outputs the result of processing a submission in the hidden folder `.output`, such that the result of submission `XXXXXX` would be available as `.output/XXXXXX.output.txt`. This can be changed in this part of the configuration file (or commented out if not using these autograders):
 
   ```yaml
@@ -105,4 +180,4 @@ $ push-to-codePost -a 'Guitar' -s *
   tests_path: "{pwd}/../.output/{submission}.output.txt"
   ```
 
-- If you are not using TigerFile, or running this tool outside of the Princeton CS infrastructure, you will lose partnerships detection. One way to circumvent this, is to use the `--groupname` mode, and to include all the names of a partnerships in the directory name, separated by dashes, such as `partner1-partner2`.
+- You can find more general information about [RunScript on the CS guide](https://csguide.cs.princeton.edu/academic/runscript).

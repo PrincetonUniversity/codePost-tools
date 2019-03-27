@@ -1,0 +1,259 @@
+#!/usr/bin/env python3
+
+##########################################################################
+# codePost grade export
+#
+# DATE:    2019-03-26
+# AUTHOR:  lumbroso (lumbroso@cs.princeton.edu)
+#
+# DESCRIPTION:
+# Exports all grades in a given course to a CSV file. Optionally, add the
+# Blackboard column IDs if these have been properly configured.
+#
+##########################################################################
+
+
+# Python 2
+from __future__ import print_function
+
+import os
+import json
+import sys
+import subprocess
+import time
+
+# NOTE: Use click instead of argparse?
+from argparse import ArgumentParser, FileType
+
+try:
+    # Python 3
+    from subprocess import getstatusoutput
+except ImportError:
+    # Python 2
+    from commands import getstatusoutput
+
+try:
+    import codePost_api as cP
+except ImportError:
+    print("ERROR: Cannot import 'codePost_api' package. Maybe the package is not installed?")
+    print("  Try:   pip install --user codePost-api")
+    sys.exit(95)
+
+from yaml import load, dump
+try:
+    from yaml import CLoader as Loader, CDumper as Dumper
+except ImportError:
+    from yaml import Loader, Dumper
+
+
+class _Color:
+    PURPLE = '\033[95m'
+    CYAN = '\033[96m'
+    DARKCYAN = '\033[36m'
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    END = '\033[0m'
+
+
+_TERM_INFO = "{END}[{BOLD}INFO{END}]{END}".format(**_Color.__dict__)
+_TERM_ERROR = "{END}[{BOLD}{RED}ERROR{END}]{END}".format(**_Color.__dict__)
+_TERM_OK = "{END}[{BOLD}{GREEN}OK{END}]{END}".format(**_Color.__dict__)
+_TERM_WARN = "{END}[{BOLD}{BLUE}INFO{END}]{END}".format(**_Color.__dict__)
+
+
+verbose = True
+
+
+def _print_err(msg, fatal=None):
+    print(_TERM_ERROR + " " + msg, file=sys.stderr)
+    # fatal contains an error number; if non-empty, exit
+    if fatal != None:
+        sys.exit(fatal)
+
+
+def _print_warn(msg):
+    print(_TERM_WARN + " " + msg, file=sys.stderr)
+
+
+def _print_info(msg):
+    if verbose:
+        print(_TERM_INFO + " " + msg, file=sys.stderr)
+
+
+def _print_ok(msg):
+    print(_TERM_OK + " " + msg)
+
+
+parser = ArgumentParser()
+
+parser.add_argument('-a',
+                    help='Name(s) of the assignment(s) for which to export grades (by default, all available).', nargs='*')
+parser.add_argument('-n',
+                    help='Usernames of students to export (by default, everybody).', nargs='*')
+parser.add_argument('--blackboard', action='store_true',
+                    help='Insert Blackboard column IDs when available (in configuration file, the "lms_ids" option).')
+parser.add_argument('--pretty', action='store_true',
+                    help='Pretty print output.')
+parser.add_argument('--json', action='store_true',
+                    help='Export as JSON (by default, the export is CSV).')
+parser.add_argument('--include-inactive', action='store_true',
+                    help='Include the grades of students who are inactive.')
+parser.add_argument('--include-empty', action='store_true',
+                    help='Include columns for assignments even when the column is blank.')
+parser.add_argument('--verbose', action='store_true',
+                    help='Display informational messages.')
+
+
+def process_command_line(parser):
+    global verbose
+
+    args, unknown = parser.parse_known_args()
+    params = vars(args)
+
+    if params["verbose"] == None or params["verbose"] == False:
+        verbose = False
+
+    outparams = params.__repr__()
+    if len(outparams) > 500:
+        outparams = outparams[:500] + "..."
+    _print_info("Command line parameters: {}".format(outparams))
+
+    # Load YAML configuration file
+
+    # Resolve possible locations for this configuration file
+    # FIXME: This is hard-coded, whereas it should be a (documented) constant.
+    possible_locations = ["codepost-config.yaml", ".codepost-config.yaml",
+                          "~/codepost-config.yaml", "~/.codepost-config.yaml"]
+
+    location = None
+    for p in possible_locations:
+        path = os.path.abspath(os.path.expanduser(p))
+        if os.path.exists(path):
+            location = path
+            break
+
+    if location == None:
+        _print_err(
+            "No codepost-config.yaml configuration file detected. Exiting.",
+            fatal=8)
+    else:
+        _print_info("Configuration path: {}".format(location))
+
+    config = load(open(location), Loader=Loader)
+    _print_info("Configuration content: {}".format(config))
+
+    return params, config
+
+
+clparams, config = process_command_line(parser)
+
+grades = cP.get_course_grades(
+    api_key=config["api_key"],
+    course_name=config["course_name"],
+    course_period=config["course_period"])
+
+# JSON output
+if clparams["json"]:
+    import json
+    if clparams["pretty"]:
+        print(json.dumps(grades, indent=2))
+    else:
+        print(json.dumps(grades))
+    sys.exit(0)
+
+
+course = cP.get_course_roster_by_name(
+    api_key=config["api_key"],
+    course_name=config["course_name"],
+    course_period=config["course_period"])
+
+# CSV output
+
+# Figure out headers
+headers = clparams.get("a", list())
+if headers == None or len(headers) == 0:
+    headers = []
+    for aid in course["assignments"]:
+        assignment_info = cP.get_assignment_info_by_id(
+            api_key=config["api_key"],
+            assignment_id=aid)
+        headers.append(assignment_info["name"])
+
+    if not clparams["include_empty"]:
+        used_assignments = set()
+        for student_grades in grades.values():
+            used_assignments = used_assignments.union(
+                set(student_grades.keys()))
+
+        headers = [header for header in headers if header in used_assignments]
+
+# Figure out students
+students = clparams.get("s", list())
+if len(students) > 0:
+    # Normalize input
+    students = map(lambda n: config["user_pattern"].format(n), students)
+
+else:
+    students = course.get("students", list())
+
+    if clparams["include_inactive"]:
+        students += course.get("inactive_students", list())
+
+csv_lines = []
+
+header_line = None
+
+if clparams["blackboard"]:
+    if not "lms_ids" in config:
+        _print_warn(
+            "Blackboard column IDs requested but not available in configuration")
+    else:
+        lms_ids = config["lms_ids"]
+        lms_format = config.get("lms_id", '"{name} | {id}"')
+
+        def format_header_title(title):
+            lms_id = lms_ids.get(title, "")
+            return lms_format.format(
+                name=title, id=lms_id) if lms_id else title
+
+        header_line = ",".join(map(format_header_title, headers))
+
+if header_line == None:
+    header_line = ",".join(map('"{}"'.format, headers))
+
+csv_lines.append('"Username",{}'.format(header_line))
+
+students.sort()
+
+# A "{},{},{},{},{},{}..." formatting string, which is
+# equivalent to plain concatenation of all columns, separated
+# by commas. The len() + 1 comes from the "Username" field
+# which is not part of the header_line.
+
+fmt_string = ",".join(["{}"] * (len(header_line.split(",")) + 1))
+
+if clparams["pretty"]:
+    fmt_string_lst = ["{:10}"] + \
+        list(map(lambda title: "{{:>{}}}".format(
+            len(title)), header_line.split(",")))
+    fmt_string = ",".join(fmt_string_lst)
+
+for student in students:
+    student_username = '"{}"'.format(student.split('@')[0])
+
+    line_list = [student_username]
+
+    student_grades = grades.get(student, dict())
+
+    for assignment_name in headers:
+        line_list.append(student_grades.get(assignment_name, ""))
+
+    line_str = fmt_string.format(*line_list)
+
+    csv_lines.append(line_str)
+
+print("\n".join(csv_lines))
