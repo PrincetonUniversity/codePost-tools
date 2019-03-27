@@ -91,19 +91,19 @@ def _print_ok(msg):
 parser = ArgumentParser()
 
 parser.add_argument('-a',
-                    help='Name(s) of the assignment(s) for which to export grades (by default, all available).')
+                    help='Name(s) of the assignment(s) for which to export grades (by default, all available).', nargs='*')
 parser.add_argument('-n',
                     help='Usernames of students to export (by default, everybody).', nargs='*')
-parser.add_argument('--include-inactive', action='store_true',
-                    help='Also export grades of inactive students.')
-parser.add_argument('--json', action='store_true',
-                    help='Export as JSON.')
-parser.add_argument('--pretty', action='store_true',
-                    help='Pretty print output.')
 parser.add_argument('--blackboard', action='store_true',
                     help='Insert Blackboard column IDs when available (in configuration file, the "lms_ids" option).')
-parser.add_argument('--show-empty', action='store_true',
-                    help='Include columns even of assignments without grades.')
+parser.add_argument('--pretty', action='store_true',
+                    help='Pretty print output.')
+parser.add_argument('--json', action='store_true',
+                    help='Export as JSON (by default, the export is CSV).')
+parser.add_argument('--include-inactive', action='store_true',
+                    help='Include the grades of students who are inactive.')
+parser.add_argument('--include-empty', action='store_true',
+                    help='Include columns for assignments even when the column is blank.')
 parser.add_argument('--verbose', action='store_true',
                     help='Display informational messages.')
 
@@ -183,7 +183,7 @@ if headers == None or len(headers) == 0:
             assignment_id=aid)
         headers.append(assignment_info["name"])
 
-    if not clparams["show_empty"]:
+    if not clparams["include_empty"]:
         used_assignments = set()
         for student_grades in grades.values():
             used_assignments = used_assignments.union(
