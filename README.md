@@ -33,11 +33,19 @@ The tools in this repository were written to provide convenient access to the [c
    partners_path: "{pwd}/partners.txt"
    group_separator: "-"
 
-   # Run-script specific settings (for COS 126, 226, etc., comment out if not using)
+   # Run-script specific settings (for COS 126, 226, ..., comment out if not using)
    tests_path: "{pwd}/../.output/{submission}.output.txt"
+
+   # LMS column IDs (optional, for convenient grade export, comment out if not using)
+   lms_format: "{name} | {id}"
+   lms_ids:
+     Hello: 38213
+     Loops: 38235
    ```
 
 ## Command Line Syntax
+
+### Upload Tool
 
 ```
 $ push-to-codePost --help
@@ -60,6 +68,28 @@ optional arguments:
   --without-tests  Allow upload assignments that do not have compiled tests.
   --use-cache      Allow for caching mechanism (i.e., for groups).
   --skip-notdone   Skip submissions that are not done.
+```
+
+### Grade Export Tool
+
+```
+$ export-codePost-grades --help
+usage: export-codePost-grades [-h] [-a A] [-n [N [N ...]]]
+                              [--include-inactive] [--json] [--pretty]
+                              [--blackboard] [--show-empty] [--verbose]
+
+optional arguments:
+  -h, --help          show this help message and exit
+  -a A                Name(s) of the assignment(s) for which to export grades
+                      (by default, all available).
+  -n [N [N ...]]      Usernames of students to export (by default, everybody).
+  --include-inactive  Also export grades of inactive students.
+  --json              Export as JSON.
+  --pretty            Pretty print output.
+  --blackboard        Insert Blackboard column IDs when available (in
+                      configuration file, the "lms_ids" option).
+  --show-empty        Include columns even of assignments without grades.
+  --verbose           Display informational messages.
 ```
 
 ## Usage Examples
@@ -86,6 +116,33 @@ $ cd $(mktemp -d)
 $ cp -pr /n/fs/tigerfile/Files/COS126_S2019/Guitar/submissions/* ./
 $ ~/assignment/guitar/run-script *
 $ push-to-codePost -a 'Guitar' -s *
+```
+
+### Export grades to CSV to import in Blackboard
+
+It is possible to export all grades associated with the current course (as defined by the configuration file) using the `export-codePost-grades` tool. If the configuration has been properly configured, such that the `lms_ids` section contains the column identifiers of the Blackboard Gradecenter, then it is possible to produce a CSV that can be directly imported by Blackboard using the `--blackboard` flag:
+
+```shell
+$ export-codePost-grades --blackboard > course_grades.csv
+```
+
+For the Blackboard export to work, you need to complete the section `lms_ids` of the configuration file:
+
+```yaml
+lms_ids:
+  Hello: 38213
+  Loops: 38235
+```
+
+where, for each assignment name, you provide the column identifier of the corresponding column in Blackboard. You can obtain a column's identifier in Blackboard's Gradecenter by using the [grade column menus](https://help.blackboard.com/Learn/Instructor/Grade/Grade_Columns#menu-options_OTP-3).
+
+To give you an example of the content of the `course_grades.csv` file, consider the following output:
+
+```shell
+$ export-codePost-grades --pretty | head -3
+"Username","Loops","Sierpinski","Programming Exam 1","NBody","Hello"
+"astudent",   20.0,            ,                11.0,   20.0,   20.0
+"bstudent",   20.0,        20.0,                15.0,   20.0,   20.0
 ```
 
 ## Remarks

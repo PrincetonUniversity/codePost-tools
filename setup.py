@@ -6,7 +6,7 @@ README = open("README.md").read()
 # This call to setup() does all the work
 setup(
     name="codePost-princeton-tools",
-    version="1.0.1",
+    version="1.0.2",
     description="Custom terminal tools for Princeton University to manage codePost.",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -23,6 +23,7 @@ setup(
     scripts=[
         "bin/push-to-codePost",
         "bin/ls-tigerfile-groups",
+        "bin/export-codePost-grades"
     ],
     install_requires=[
         "codePost-api",

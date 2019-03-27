@@ -12,3 +12,9 @@ group_separator: "-"
 
 # Run-script specific settings (for COS 126, 226, etc.)
 tests_path: "{pwd}/../.output/{submission}.output.txt"
+
+# LMS column IDs (optional, for convenient grade export)
+lms_format: "{name} | {id}"
+lms_ids:
+  Hello: 38213
+  Loops: 38235
