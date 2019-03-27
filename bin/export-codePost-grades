@@ -218,7 +218,7 @@ if clparams["blackboard"]:
         def format_header_title(title):
             lms_id = lms_ids.get(title, "")
             return lms_format.format(
-                name=title, id=lms_id)
+                name=title, id=lms_id) if lms_id else title
 
         header_line = ",".join(map(format_header_title, headers))
 
@@ -229,7 +229,12 @@ csv_lines.append('"Username",{}'.format(header_line))
 
 students.sort()
 
-fmt_string = ",".join(["{}"] * len(header_line.split(",")))
+# A "{},{},{},{},{},{}..." formatting string, which is
+# equivalent to plain concatenation of all columns, separated
+# by commas. The len() + 1 comes from the "Username" field
+# which is not part of the header_line.
+
+fmt_string = ",".join(["{}"] * (len(header_line.split(",")) + 1))
 
 if clparams["pretty"]:
     fmt_string_lst = ["{:10}"] + \
