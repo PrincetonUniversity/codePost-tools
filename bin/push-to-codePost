@@ -174,7 +174,7 @@ def uploadFolderBySubmissionId(path, without_tests=False):
         submissionId, students))
 
     studentsStr = ",".join(
-        map(lambda n: "{}@princeton.edu".format(n), students))
+        map(lambda n: config["user_pattern"].format(n), students))
 
     files = listFiles(path, fullPaths=True)
     testPath = None
