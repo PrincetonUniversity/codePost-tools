@@ -213,7 +213,7 @@ if clparams["blackboard"]:
             "Blackboard column IDs requested but not available in configuration")
     else:
         lms_ids = config["lms_ids"]
-        lms_format = config.get("lms_id", '"{name} | {id}"')
+        lms_format = config.get("lms_format", '"{name} |{id}"')
 
         def format_header_title(title):
             lms_id = lms_ids.get(title, "")

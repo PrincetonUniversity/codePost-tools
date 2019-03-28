@@ -14,7 +14,7 @@ group_separator: "-"
 tests_path: "{pwd}/../.output/{submission}.output.txt"
 
 # LMS column IDs (optional, for convenient grade export)
-lms_format: "{name} | {id}"
+lms_format: "{name} |{id}"
 lms_ids:
   Hello: 38213
   Loops: 38235
