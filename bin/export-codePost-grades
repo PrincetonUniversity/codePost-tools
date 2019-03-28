@@ -234,7 +234,7 @@ students.sort()
 # by commas. The len() + 1 comes from the "Username" field
 # which is not part of the header_line.
 
-fmt_string = ",".join(["{}"] * (len(header_line.split(",")) + 1))
+fmt_string = ",".join(["{}"] * (len(headers) + 1))
 
 if clparams["pretty"]:
     fmt_string_lst = ["{:10}"] + \
