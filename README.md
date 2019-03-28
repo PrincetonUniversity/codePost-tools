@@ -169,7 +169,7 @@ $ export-codePost-grades --pretty | head -3
 
 - The directory tree for the submissions to `"My Assignment"` in course `"COS101"` taught during `"S2019"` would be `/n/fs/tigerfile/Files/COS101_S2019/My_Assignment/`. There are two subdirectories: `submissions` contains a folder per submission; `by_netid` contains a folder per student (and so some submissions are duplicated as they appear for each student).
 
-- You can find more general information about [Tigerfile on the CS guide](https://csguide.cs.princeton.edu/academic/tigerfile).
+- You can find more general information about [Tigerfile in the CS guide](https://csguide.cs.princeton.edu/academic/tigerfile).
 
 ### About RunScript...
 
@@ -180,4 +180,4 @@ $ export-codePost-grades --pretty | head -3
   tests_path: "{pwd}/../.output/{submission}.output.txt"
   ```
 
-- You can find more general information about [RunScript on the CS guide](https://csguide.cs.princeton.edu/academic/runscript).
+- You can find more general information about [RunScript in the CS guide](https://csguide.cs.princeton.edu/academic/runscript).
