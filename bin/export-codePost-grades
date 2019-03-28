@@ -100,10 +100,12 @@ parser.add_argument('--pretty', action='store_true',
                     help='Pretty print output.')
 parser.add_argument('--json', action='store_true',
                     help='Export as JSON (by default, the export is CSV).')
-parser.add_argument('--include-inactive', action='store_true',
-                    help='Include the grades of students who are inactive.')
-parser.add_argument('--include-empty', action='store_true',
+parser.add_argument('--with-empty', action='store_true',
                     help='Include columns for assignments even when the column is blank.')
+parser.add_argument('--with-inactive', action='store_true',
+                    help='Include the grades of students who are inactive.')
+parser.add_argument('--with-unfinalized', action='store_true',
+                    help='Include the grades of submissions which have not been finalized.')
 parser.add_argument('--verbose', action='store_true',
                     help='Display informational messages.')
 
@@ -154,7 +156,8 @@ clparams, config = process_command_line(parser)
 grades = cP.get_course_grades(
     api_key=config["api_key"],
     course_name=config["course_name"],
-    course_period=config["course_period"])
+    course_period=config["course_period"],
+    only_finalized=not clparams.get("with_unfinalized", False))
 
 # JSON output
 if clparams["json"]:
@@ -183,7 +186,7 @@ if headers == None or len(headers) == 0:
             assignment_id=aid)
         headers.append(assignment_info["name"])
 
-    if not clparams["include_empty"]:
+    if not clparams["with_empty"]:
         used_assignments = set()
         for student_grades in grades.values():
             used_assignments = used_assignments.union(
@@ -200,7 +203,7 @@ if len(students) > 0:
 else:
     students = course.get("students", list())
 
-    if clparams["include_inactive"]:
+    if clparams["with_inactive"]:
         students += course.get("inactive_students", list())
 
 csv_lines = []

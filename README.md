@@ -37,7 +37,7 @@ The tools in this repository were written to provide convenient access to the [c
    tests_path: "{pwd}/../.output/{submission}.output.txt"
 
    # LMS column IDs (optional, for convenient grade export, comment out if not using)
-   lms_format: "{name} | {id}"
+   lms_format: "{name} |{id}"
    lms_ids:
      Hello: 38213
      Loops: 38235
@@ -88,9 +88,11 @@ optional arguments:
                       configuration file, the "lms_ids" option).
   --pretty            Pretty print output.
   --json              Export as JSON (by default, the export is CSV).
-  --include-inactive  Include the grades of students who are inactive.
-  --include-empty     Include columns for assignments even when the column is
+  --with-empty        Include columns for assignments even when the column is
                       blank.
+  --with-inactive     Include the grades of students who are inactive.
+  --with-unfinalized  Include the grades of submissions which have not been
+                      finalized.
   --verbose           Display informational messages.
 ```
 
@@ -127,7 +129,7 @@ It is possible to export all grades associated with the current course (as defin
 ```shell
 $ export-codePost-grades -a Hello Loops --blackboard > course_grades.csv
 $ head -3 course_grades.csv
-"Username","Hello | 38213","Loops | 38235"
+"Username","Hello |38213","Loops |38235"
 "student1",20.0,20.0
 "student2",20.0,20.0
 ```
@@ -150,6 +152,8 @@ $ export-codePost-grades --pretty | head -3
 "student1",   20.0,            ,                11.0,   20.0,   20.0
 "student2",   20.0,        20.0,                15.0,   20.0,   20.0
 ```
+
+By default, only grades for submissions that are finalized and have been claimed by a grader, will be displayed. This can be adjusted using the command-line flags: For instance, using the flag `--with-unfinalized` will also include the grades of submission which have not yet been finalized.
 
 ## Remarks
 
