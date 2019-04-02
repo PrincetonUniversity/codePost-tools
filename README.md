@@ -16,6 +16,8 @@ The tools in this repository were written to provide convenient access to the [c
    pip install --user --upgrade codePost-princeton-tools
    ```
 
+   (If after a `--user` install you cannot run the codePost tools such as `export-codePost-grades`, check that `~/.local/bin` is in your `$PATH`, or contact [CS staff](https://csguide.cs.princeton.edu/gethelp/csstaff).)
+
 2. Retrieve your codePost API key from codePost's settings at [https://codepost.io/settings](https://codepost.io/settings). Note that as of March 2019, you can only retrieve a codePost API key if you are an administrator for a course on codePost.
 
 3. Create a configuration file in your home directory, either called `codepost-config.yaml` or `.codepost-config.yaml`, and complete the following template for the information relevant to your course. You should at most have to add the codePost API key, and set the proper course name and period.
@@ -98,7 +100,7 @@ optional arguments:
 
 ## Usage Examples
 
-In both the following examples, we asssume there is a configuration file `~/.codepost-config.yaml` which is properly configured for the course `"COS126"` and period `"S2019"`. We assume that the autograding scripts can be invoked by calling `~/assignments/guitar/run-script *`.
+In both the following examples, we asssume there is a configuration file `~/.codepost-config.yaml` which is properly configured for the course `"COS126"` and period `"S2019"`. We assume TigerFile has been configured to collect submissions for this coruse. We assume that the autograding scripts can be invoked by calling `~/assignments/guitar/run-script *` from the course's shell account, and that, after running, they produce at most one output file per `{submission}` at the location `../.output/{submission}.output.txt`. (This location is configurable in the `codepost-config.yaml` file setting `tests_path`.)
 
 ### Upload a single submission
 
@@ -161,7 +163,25 @@ By default, only grades for submissions that are finalized and have been claimed
 
 - If you are not using TigerFile, or running this tool outside of the Princeton CS infrastructure, you will lose partnerships detection. One way to circumvent this, is to use the `--groupname` mode, and to include all the student usernames of a partnerships in the directory name, separated by dashes, such as `partner1-partner2`.
 
-- Another mechanism to specify partnerships, which also does not depend on TigerFile, is to include the student usernames, one by line, in a file `partners.txt` included in each submission folder, in addition to the other files. When this file is detected, the upload tool will use this information. (You can change the name of the file containing this information by adjusting the `partners_path` setting in the configuration file.)
+  ```shell
+  $ cd $(mktemp -d)
+  $ cp -pr /n/fs/tigerfile/Files/COS126_S2019/Guitar/submission/8357fc747f79039564fc936c61445d65 ./partner1-partner2
+  $ ~/assignment/guitar/run-script *
+  $ push-to-codePost --netid -a 'Guitar' -s partner1-partner2
+  ```
+
+  This submission will be assigned to the students `partner1@princeton.edu` and `partner2@princeton.edu`.
+
+- Another mechanism to specify partnerships, which also does not depend on TigerFile, is to include the student usernames, one by line, in a file `partners.txt` included in each submission folder, in addition to the other files. When this file is detected, the upload tool will use this information. (This filename is configurable in the `codepost-config.yaml` file setting `partners_path`.)
+  ```shell
+  $ cd $(mktemp -d)
+  $ cp -pr /n/fs/tigerfile/Files/COS126_S2019/Guitar/submission/8357fc747f79039564fc936c61445d65 ./nameDoesNotMatter
+  $ echo "partner1" > ./nameDoesNotMatter/partners.txt
+  $ echo "partner2" >> ./nameDoesNotMatter/partners.txt
+  $ ~/assignment/guitar/run-script *
+  $ push-to-codePost --netid -a 'Guitar' -s *
+  ```
+  This submission will also be assigned to the students `partner1@princeton.edu` and `partner2@princeton.edu`.
 
 ### About TigerFile...
 
@@ -173,7 +193,7 @@ By default, only grades for submissions that are finalized and have been claimed
 
 - The directory tree for the submissions to `"My Assignment"` in course `"COS101"` taught during `"S2019"` would be `/n/fs/tigerfile/Files/COS101_S2019/My_Assignment/`. There are two subdirectories: `submissions` contains a folder per submission; `by_netid` contains a folder per student (and so some submissions are duplicated as they appear for each student).
 
-- You can find more general information about [Tigerfile in the CS guide](https://csguide.cs.princeton.edu/academic/tigerfile).
+- You can find more general information about [TigerFile in the CS guide](https://csguide.cs.princeton.edu/academic/tigerfile).
 
 ### About RunScript...
 
