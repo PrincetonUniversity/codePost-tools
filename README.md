@@ -39,11 +39,15 @@ The tools in this repository were written to provide convenient access to the [c
    # RunScript specific settings (for COS 126, 226, ..., comment out if not using)
    tests_path: "{pwd}/../.output/{submission}.output.txt"
 
-   # LMS column IDs (optional, for convenient grade export, comment out if not using)
+   # LMS column formatting (optional, for convenient CSV grade export, comment out if not using)
    lms_format: "{name} |{id}"
+
+   # For each assignment, add an entry "Assignment name": <Blackboard column ID>
+   # You can locate the correct Blackboard column ID as indicated in:
+   # https://github.com/PrincetonUniversity/codePost-tools/blob/master/README.md#export-grades-to-csv-to-import-in-blackboard
    lms_ids:
-     Hello: 38213
-     Loops: 38235
+     "Hello": 38213
+     "Loops": 38235
    ```
 
 ## Command Line Syntax
