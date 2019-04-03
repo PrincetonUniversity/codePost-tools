@@ -154,10 +154,13 @@ def callGroupLister(path):
 
 
 def listFiles(path, fullPaths=True):
-    if not fullPaths:
-        return [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-    else:
-        return [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+    try:
+        if not fullPaths:
+            return [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+        else:
+            return [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+    except NotADirectoryError:
+        return []
 
 
 def uploadFolderBySubmissionId(path, without_tests=False):
@@ -464,7 +467,10 @@ else:
 successful = 0
 total = 0
 for s in params["s"]:
-    print("Processing", s)
+    print("Processing {}".format(s))
+    if not os.path.isdir(s):
+        _print_info("Submission: {} is not a folder, ignoring".format(s))
+        continue
     total += 1
     if params["netid"] or params["groupname"]:
         if uploadFolderByNetID(s, without_tests=params['without_tests']):
