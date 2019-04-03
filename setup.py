@@ -6,7 +6,7 @@ README = open("README.md").read()
 # This call to setup() does all the work
 setup(
     name="codePost-princeton-tools",
-    version="1.0.7",
+    version="1.0.8",
     description="Custom terminal tools for Princeton University to manage codePost.",
     long_description=README,
     long_description_content_type="text/markdown",

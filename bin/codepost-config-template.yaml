@@ -6,6 +6,7 @@ course_period: S2019
 
 # TigerFile specific settings
 tigerfile_path: /n/fs/tigerfile/Files/{course_name}_{course_period}/{assignment_name}
+tigerfile_path_space: "_"
 user_pattern: "{}@princeton.edu"
 partners_path: "{pwd}/partners.txt"
 group_separator: "-"

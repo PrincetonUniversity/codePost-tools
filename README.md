@@ -16,7 +16,7 @@ The tools in this repository were written to provide convenient access to the [c
    pip install --user --upgrade codePost-princeton-tools
    ```
 
-   (If after a `--user` install you cannot run the codePost tools such as `export-codePost-grades`, check that `~/.local/bin` is in your `$PATH`, or contact [CS staff](https://csguide.cs.princeton.edu/gethelp/csstaff).)
+   Note: If after a `--user` install you cannot run the codePost tools such as `export-codePost-grades`, check that `~/.local/bin` is in your `$PATH`, or contact [CS staff](https://csguide.cs.princeton.edu/gethelp/csstaff).
 
 2. Retrieve your codePost API key from codePost's settings at [https://codepost.io/settings](https://codepost.io/settings). Note that as of March 2019, you can only retrieve a codePost API key if you are an administrator for a course on codePost.
 
@@ -31,6 +31,7 @@ The tools in this repository were written to provide convenient access to the [c
 
    # TigerFile specific settings (do not change)
    tigerfile_path: /n/fs/tigerfile/Files/{course_name}_{course_period}/{assignment_name}
+   tigerfile_path_space: "_"
    user_pattern: "{}@princeton.edu"
    partners_path: "{pwd}/partners.txt"
    group_separator: "-"
