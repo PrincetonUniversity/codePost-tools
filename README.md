@@ -150,8 +150,8 @@ For the Blackboard export to work, you need to complete the section `lms_ids` of
 
 ```yaml
 lms_ids:
-  Hello: 38213
-  Loops: 38235
+  "Hello": 38213
+  "Loops": 38235
 ```
 
 where, for each assignment name, you provide the column identifier of the corresponding column in Blackboard. You can obtain a column's identifier in Blackboard's Gradecenter by using the [grade column menus](https://help.blackboard.com/Learn/Instructor/Grade/Grade_Columns#menu-options_OTP-3).
