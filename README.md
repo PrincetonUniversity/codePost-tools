@@ -34,8 +34,9 @@ The tools in this repository were written to provide convenient access to the [c
    user_pattern: "{}@princeton.edu"
    partners_path: "{pwd}/partners.txt"
    group_separator: "-"
+   notdone_file: "NOTDONE"
 
-   # Run-script specific settings (for COS 126, 226, ..., comment out if not using)
+   # RunScript specific settings (for COS 126, 226, ..., comment out if not using)
    tests_path: "{pwd}/../.output/{submission}.output.txt"
 
    # LMS column IDs (optional, for convenient grade export, comment out if not using)
@@ -50,26 +51,31 @@ The tools in this repository were written to provide convenient access to the [c
 ### Upload tool
 
 ```
-$ push-to-codePost --help
 usage: push-to-codePost [-h] [-a A] [-s S [S ...]] [--netid] [--groupname]
-                        [--extend] [--overwrite] [--verbose]
-                        [--without-tests] [--use-cache] [--skip-notdone]
+                        [--extend] [--overwrite] [--verbose] [--without-tests]
+                        [--skip-notdone] [--override-group-detection]
 
 optional arguments:
-  -h, --help       show this help message and exit
-  -a A             The name of the assignment to upload to (e.g. Loops)
-  -s S [S ...]     The list of folders, one folder per submission to upload.
-  --netid          Assume each folder name is a different NetID instead of
-                   submission hashes, and resolve partners. [NOT RECOMMENDED]
-  --groupname      Assume each folder name contains all NetIDs of a group, of
-                   submission hashes.
-  --extend         If submission already exists, add new files to it and
-                   replace old files if the code has changed.
-  --overwrite      If submission already exists, overwrite it.
-  --verbose        Display informational messages.
-  --without-tests  Allow upload assignments that do not have compiled tests.
-  --use-cache      Allow for caching mechanism (i.e., for groups).
-  --skip-notdone   Skip submissions that are not done.
+  -h, --help            show this help message and exit
+  -a A                  The name of the assignment to upload to (e.g. Loops)
+  -s S [S ...]          The list of folders, one folder per submission to
+                        upload.
+  --netid               Assume each folder name is a different NetID instead
+                        of submission hashes, and resolve partners. [NOT
+                        RECOMMENDED]
+  --groupname           Assume each folder name contains all NetIDs of a
+                        group, of submission hashes.
+  --extend              If submission already exists, add new files to it and
+                        replace old files if the code has changed.
+  --overwrite           If submission already exists, overwrite it.
+  --verbose             Display informational messages.
+  --without-tests       Allow upload assignments that do not have compiled
+                        tests.
+  --skip-notdone        Skip not done submissions (as reported by TigerFile).
+  --override-group-detection
+                        Bypasses the group detection mechanism (intended for
+                        small manual operations for which there is no need for
+                        the automated group detection).
 ```
 
 ### Grade export tool

@@ -3,8 +3,9 @@
 ##########################################################################
 # TigerFile Group Listing Program
 #
-# DATE:    2019-02-07, updated 2019-03-26
-# AUTHOR:  lumbroso (lumbroso@cs.princeton.edu)
+# DATE:    2019-02-07, updated 2019-04-03
+# AUTHORS: lumbroso (lumbroso@cs.princeton.edu)
+#          wayne (wayne@cs.princeton.edu)
 #
 # DESCRIPTION:
 # Given an actual Tigerfile file tree (or a hard link to such a tree), will
@@ -24,27 +25,107 @@
 #
 ##########################################################################
 
-ASSIGNMENT_DIR=$1
-BASE_DIR=$(pwd)
+TARGET_DIR="$1"
 
-# For each submission output students
-for i  in $1/submissions/*
-do
-    GROUPID=$(basename $i)
+##########################################################################
+# Validation of the provided path, to make sure it is an appropriate path.
 
-    cd "$i"
+if [ ! -d "${TARGET_DIR}" ]
+then
+  echo "Path error: The provided path does not seem to be a valid directory."
+  exit
+fi
 
-    if [ $(ls | wc -l) -eq 0 ]
-    then
-        # ignore empty submission
-        echo -n ""
+if [[ "${TARGET_DIR}" == *"submissions"* ]]
+then
+  echo "Path error: Provided a 'submissions' directory rather than the assignment root."
+  exit
+fi
+
+if [[ "${TARGET_DIR}" == *"by_netid"* ]]
+then
+  echo "Path error: Provided a 'by_netid' directory rather than the assignment root."
+  exit
+fi
+
+BY_NETID_DIR="${TARGET_DIR}/by_netid"
+SUBMISSIONS_DIR="${TARGET_DIR}/submissions"
+
+if [ ! -d "${BY_NETID_DIR}" ] || [ ! -d "${SUBMISSIONS_DIR}" ]
+then
+  echo "Path error: The provided path does not seem to belong to TigerFile."
+  exit
+fi
+
+# Obtain the absolute path from the relative path
+function to-abs-path {
+    # Thanks @EugenKonkov + @hashchange
+    # https://stackoverflow.com/a/51264222/408734
+
+    local target="$1"
+
+    if [ "$target" == "." ]; then
+        echo "$(pwd)"
+    elif [ "$target" == ".." ]; then
+        echo "$(dirname "$(pwd)")"
     else
-        PARTNERS=$(ls -i | sed -e 's/^\s*//' | cut -d' ' -f1 | { read inum; find ../../by_netid -inum "$inum"; } | cut -d/ -f4 | sort | tr '\n' '-' | sed -e 's/-$//')
-        if [ ! -z "$PARTNERS" ]
-        then
-            echo "$GROUPID,$PARTNERS"
-        fi
+        echo "$(cd "$(dirname "$1")"; pwd)/$(basename "$1")"
     fi
-    cd "$BASE_DIR"
+}
+
+FULL_DIR=$(to-abs-path ${SUBMISSIONS_DIR})
+
+if [[ "${FULL_DIR}" == *"by_netid"* ]]
+then
+  echo "Path warning: The provided path does not seem to be an original TigerFile path."
+fi
+
+##########################################################################
+
+# If reached here, then both ${BY_NETID_DIR} and ${SUBMISSIONS_DIR} should
+# be assumed to be proper TigerFile paths, so we should be able to resolve
+# the inodes.
+
+# First resolve partnerships
+
+# associative array (key = inode, value = netids)
+declare -A PARTNER_MAP
+
+for dir in "$BY_NETID_DIR"/*; do
+    netid=$(basename "$dir")
+
+    # find partners by checking for duplicate inodes (hardlinks)
+    for inode in $(ls -i "$dir" | cut -f1 -d" "); do
+        lookup_val="${PARTNER_MAP[$inode]}"
+        if [ -z "${lookup_val}" ]
+        then
+            PARTNER_MAP["$inode"]="$netid"
+        else
+            PARTNER_MAP["$inode"]="${lookup_val}-$netid"
+        fi
+        break  # need only first inode for partner matching
+    done
 done
 
+# Second resolve submissions
+
+# associative array (key = inode, value = submission hash)
+declare -A SUBMISSIONS_MAP
+
+for dir in "$SUBMISSIONS_DIR"/*; do
+    hash=$(basename "$dir")
+
+    # find partners by checking for duplicate inodes (hardlinks)
+    for inode in $(ls -i "$dir" | cut -f1 -d" "); do
+        SUBMISSIONS_MAP["$inode"]="$hash"
+        break  # need only first inode for partner matching
+    done
+done
+
+# Output a CSV mapping the submission hashes to sets of NetIDs
+
+for inode in "${!PARTNER_MAP[@]}"; do
+    hash="${SUBMISSIONS_MAP[$inode]}"
+    netids="${PARTNER_MAP[$inode]}"
+    echo "$hash,$netids"
+done
