@@ -99,6 +99,8 @@ def getPartnerships(assignment_name=None):
         path = config['tigerfile_path'].format(**config)
         if "tigerfile_path_space" in config:
             path = path.replace(" ", config.get("tigerfile_space", " "))
+            _print_info("Group detection: Using space substitution '{}'".format(
+                path))
 
     _print_info("Group detection: Using path '{}'".format(path))
 
