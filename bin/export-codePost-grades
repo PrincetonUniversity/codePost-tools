@@ -113,7 +113,7 @@ parser.add_argument('--verbose', action='store_true',
 def process_command_line(parser):
     global verbose
 
-    args, unknown = parser.parse_known_args()
+    args, _unknown = parser.parse_known_args()
     params = vars(args)
 
     if params["verbose"] == None or params["verbose"] == False:

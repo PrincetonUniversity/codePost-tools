@@ -192,13 +192,20 @@ def uploadFolderBySubmissionId(path, without_tests=False):
 
     files = listFiles(path, fullPaths=True)
 
-    if "skip_notdone" in params and params["skip_notdone"] and "notdone_file" in config:
+    # This section is only run if there is some notion of NOTDONE file
+    # (as defined by the "notdone_file" setting of the YAML configuration file)
+    if "notdone_file" in config:
+
+        # Do we find the NOTDONE file among the uploaded files? (should be case insensitive?)
         if config["notdone_file"] in files:
-            _print_info(
-                ("Submission: NOT DONE FOUND for {} (called with " +
-                    "--skip-notdone); skipping submission").format(
-                    submissionId))
-            return False
+            
+            # Can be overriden by --upload-notdone CLI flag
+            if not ("upload_notdone" in params and params["upload_notdone"]):
+                _print_info(
+                    ("Submission: NOT DONE FOUND for {} (was not called with " +
+                        "--upload-notdone); skipping submission").format(
+                        submissionId))
+                return False
 
     testPath = None
 
@@ -313,13 +320,20 @@ def uploadFolderByNetID(path, without_tests=False):
 
     files = listFiles(path, fullPaths=True)
 
-    if "skip_notdone" in params and params["skip_notdone"] and "notdone_file" in config:
+    # This section is only run if there is some notion of NOTDONE file
+    # (as defined by the "notdone_file" setting of the YAML configuration file)
+    if "notdone_file" in config:
+
+        # Do we find the NOTDONE file among the uploaded files? (should be case insensitive?)
         if config["notdone_file"] in files:
-            _print_info(
-                ("Submission: NOT DONE FOUND for {} (called with " +
-                    "--skip-notdone); skipping submission").format(
-                    netIdsRaw))
-            return False
+            
+            # Can be overriden by --upload-notdone CLI flag
+            if not ("upload_notdone" in params and params["upload_notdone"]):
+                _print_info(
+                    ("Submission: NOT DONE FOUND for {} (was not called with " +
+                        "--upload-notdone); skipping submission").format(
+                        netIdsRaw))
+                return False
 
     testPath = None
 
@@ -401,8 +415,8 @@ parser.add_argument('--verbose', action='store_true',
                     help='Display informational messages.')
 parser.add_argument('--without-tests', action='store_true',
                     help='Allow upload assignments that do not have compiled tests.')
-parser.add_argument('--skip-notdone', action='store_true',
-                    help='Skip not done submissions (as reported by TigerFile).')
+parser.add_argument('--upload-notdone', action='store_true',
+                    help='Include "not done" submissions (as reported by TigerFile) in uploads.')
 parser.add_argument('--override-group-detection', action='store_true',
                     help='Bypasses the group detection mechanism (intended for small manual operations for which there is no need for the automated group detection).')
 args, unknown = parser.parse_known_args()
